@@ -23,6 +23,9 @@ build/
 # 🧪 VSCode settings (jika pakai VSCode)
 .vscode/
 
-# 🔍 MacOS & Linux
-.DS_Store
-Thumbs.db
+#dataset gejala
+tuberculosis_xray_dataset.csv
+
+#Training data
+label_encoders.pkl
+model_tbc.pkl
