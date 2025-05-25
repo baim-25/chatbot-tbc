@@ -1,0 +1,28 @@
+# ⛔ Virtual environment
+venv/
+env/
+
+# ⛔ File config/rahasia
+.env
+
+# 🗑️ File cache/sampah Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# 📦 File bawaan pip / distribusi
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# 📄 Log dan hasil output
+*.log
+
+# 🧪 VSCode settings (jika pakai VSCode)
+.vscode/
+
+# 🔍 MacOS & Linux
+.DS_Store
+Thumbs.db

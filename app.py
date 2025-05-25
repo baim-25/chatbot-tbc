@@ -1,10 +1,18 @@
 import streamlit as st
 import google.generativeai as genai
 import pandas as pd
+from dotenv import load_dotenv
+load_dotenv()
+
+import os
+API_KEY = os.getenv("GOOGLE_API_KEY")
 
 # Konfigurasi Gemini API
-genai.configure(api_key="AIzaSyB-thn8FtHcwsrvkdFI4jaPJEnI_ywhuUk")
+API_KEY = os.getenv("GOOGLE_API_KEY")
+genai.configure(api_key= API_KEY)
 model = genai.GenerativeModel("gemini-2.0-flash")
+
+print("API Key: ", API_KEY)
 
 #Membaca data dari dataset
 data = pd.read_csv("tuberculosis_xray_dataset.csv")
