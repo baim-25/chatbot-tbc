@@ -4,42 +4,42 @@ import pandas as pd
 import os
 import pickle
 
-# 🔐 Konfigurasi Gemini API
+# Konfigurasi Gemini API
 API_KEY = os.getenv("GOOGLE_API_KEY")
 genai.configure(api_key=API_KEY)
 
-# 🧠 Load model dan label encoder
+# Load model dan label encoder
 with open("model_tbc.pkl", "rb") as f:
     model = pickle.load(f)
-
 with open("label_encoders.pkl", "rb") as f:
     label_encoders = pickle.load(f)
 
-# 🩺 Judul Aplikasi
+# Judul Aplikasi
 st.title("🩺 Prediksi Penyakit TBC dan Rekomendasi Pengobatan")
 st.markdown("Masukkan gejala berikut untuk mengetahui kemungkinan TBC dan mendapatkan saran medis.")
 
-# 📋 Form Input Gejala
+# Form Input Gejala
 with st.form("form_gejala"):
     st.subheader("📝 Isi Gejala Pasien")
-
-    usia = st.number_input("Usia", min_value=0, max_value=120, step=1)
-    jenis_kelamin = st.selectbox("Jenis Kelamin", ["Male", "Female"])
-    nyeri_dada = st.selectbox("Nyeri Dada?", ["No", "Yes"])
-    batuk = st.slider("Tingkat Batuk (0-9)", 0, 9, 0)
-    sesak_napas = st.slider("Sesak Napas (0-4)", 0, 4, 0)
-    kelelahan = st.slider("Kelelahan (0-9)", 0, 9, 0)
-    berat_badan = st.number_input("Penurunan Berat Badan (kg)", 0.0)
-    demam = st.selectbox("Demam", ["Mild", "Moderate", "High"])
-    keringat_malam = st.selectbox("Keringat Malam", ["No", "Yes"])
-    dahak = st.selectbox("Produksi Dahak", ["High", "Medium", "Low"])
-    dahak_berdarah = st.selectbox("Darah di Dahak", ["No", "Yes"])
-    merokok = st.selectbox("Riwayat Merokok", ["Never", "Current", "Former"])
-    riwayat_tbc = st.selectbox("Riwayat TBC Sebelumnya", ["Yes", "No"])
-
+    col1, col2 = st.columns(2)
+    with col1:
+        usia = st.number_input("Usia", min_value=0, max_value=120, step=1)
+        jenis_kelamin = st.selectbox("Jenis Kelamin", ["Male", "Female"])
+        nyeri_dada = st.selectbox("Nyeri Dada?", ["No", "Yes"])
+        batuk = st.slider("Tingkat Batuk (0-9)", 0, 9, 0)
+        sesak_napas = st.slider("Sesak Napas (0-4)", 0, 4, 0)
+        kelelahan = st.slider("Kelelahan (0-9)", 0, 9, 0)
+    with col2:
+        berat_badan = st.number_input("Penurunan Berat Badan (kg)", 0.0)
+        demam = st.selectbox("Demam", ["Mild", "Moderate", "High"])
+        keringat_malam = st.selectbox("Keringat Malam", ["No", "Yes"])
+        dahak = st.selectbox("Produksi Dahak", ["High", "Medium", "Low"])
+        dahak_berdarah = st.selectbox("Darah di Dahak", ["No", "Yes"])
+        merokok = st.selectbox("Riwayat Merokok", ["Never", "Current", "Former"])
+        riwayat_tbc = st.selectbox("Riwayat TBC Sebelumnya", ["Yes", "No"])
     submit = st.form_submit_button("Lakukan Prediksi")
 
-# 🚀 Proses Prediksi
+#  Proses Prediksi
 if submit:
     data_input = {
         "Age": usia,
@@ -64,7 +64,7 @@ if submit:
         if col in input_df.columns:
             input_df[col] = le.transform(input_df[col])
 
-    # 🔍 Prediksi
+    # Prediksi
     probas = model.predict_proba(input_df)[0]
 
     # Ambil probabilitas khusus untuk label 'Tuberculosis'
@@ -76,8 +76,9 @@ if submit:
     label_teks = label_encoders["Class"].inverse_transform([hasil_prediksi])[0]
 
     # Tampilkan Hasil
-    st.success(f"🩺 Prediksi: **{label_teks}**\n\nKemungkinan Tuberculosis: **{probabilitas_tbc:.2f}**")
-    st.progress(min(int(probabilitas_tbc * 100), 100))
+    st.success(f"🩺 Prediksi: **{label_teks}**")
+    st.metric(label="Kemungkinan Tuberculosis", value=f"{probabilitas_tbc:.2%}")
+
 
     # Jika hasilnya Normal → minta saran dari Gemini
     if label_teks.lower() == "normal":
@@ -88,16 +89,16 @@ if submit:
 
             {data_input}
 
-            Sebagai asisten medis digital, berikan 5 saran kesehatan untuk menjaga kesehatan paru-paru dan mencegah penyakit TBC.
+            Sebagai asisten medsis digital, berikan saran kesehatan untuk menjaga kesehatan pasien berdasarkan gejalanya, tambahkan juga informasi dan pentingnya menjaga kesehatan paru-paru dan mencegah penyakit TBC.
             Gunakan bahasa Indonesia yang sopan, ringkas, dan mudah dipahami masyarakat awam.
             """
             response = genai.GenerativeModel("gemini-2.0-flash").generate_content(prompt_normal)
             saran_normal = response.text.strip()
+        with st.expander("💡 Lihat Saran Kesehatan dari Gemini"):
+            st.markdown(saran_normal)
 
-    st.info("💡 **Saran Kesehatan dari Gemini:**")
-    st.markdown(saran_normal)
 
-    # 💡 Kirim ke Gemini jika TBC
+    # Kirim ke Gemini jika TBC
     if label_teks.lower() == "tuberculosis":
         with st.spinner("Memproses rekomendasi dari Gemini..."):
             prompt = f"""
@@ -109,6 +110,5 @@ if submit:
             """
             response = genai.GenerativeModel("gemini-2.0-flash").generate_content(prompt)
             jawaban = response.text.strip()
-        st.info("💡 **Rekomendasi Pengobatan dari Gemini:**")
-        st.markdown(jawaban)
-    
+        with st.expander("💡 Rekomendasi Pengobatan dari Gemini"):
+            st.markdown(jawaban)
